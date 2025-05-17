@@ -1,8 +1,10 @@
 import React from 'react';
 import { useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
-import { Alert, Button, Checkbox, TextInput, Container, Stack, Table, Modal, NumberInput } from '@mantine/core'
+import { Button, Checkbox, TextInput, Container, Stack, Table, Modal, NumberInput } from '@mantine/core'
+import { notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css'
+import '@mantine/notifications/styles.css'
 
 interface Product {
   price: number;
@@ -52,6 +54,7 @@ function ProductRow({ product }: { product: Product }) {
     <Table.Tr>
       <Table.Td>{name}</Table.Td>
       <Table.Td>{`\$${product.price}`}</Table.Td>
+      <Table.Td>{`${product.count}`}</Table.Td>
     </Table.Tr>
   );
 }
@@ -90,6 +93,7 @@ function ProductTable({ products, filterText, inStockOnly }: { products: Product
         <Table.Tr>
           <Table.Th>Name</Table.Th>
           <Table.Th>Price</Table.Th>
+          <Table.Th>Count</Table.Th>
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>{rows}</Table.Tbody>
@@ -129,8 +133,6 @@ function handleProductAddButtonClick({
   setNewProductName,
   setNewProductCount,
   setNewProductPrice,
-  setAlert,
-  setAlertMsg,
 }: {
   setProductList: React.Dispatch<React.SetStateAction<Array<Products>>>;
   close: () => void;
@@ -142,21 +144,27 @@ function handleProductAddButtonClick({
   setNewProductName: React.Dispatch<React.SetStateAction<string>>
   setNewProductCount: React.Dispatch<React.SetStateAction<number|string>>
   setNewProductPrice: React.Dispatch<React.SetStateAction<number|string>>
-  setAlert: React.Dispatch<React.SetStateAction<boolean>>;
-  setAlertMsg: React.Dispatch<React.SetStateAction<string>>;
 }) {
-  if (typeof newProductCount === 'string') {
-    setAlertMsg("No count entered");
-    setAlert(true);
+  if (newCategory === "") {
+    notifications.show({
+      title: "Required Fields Missing",
+      message: "Missing product category"
+    })
   } else if (newProductName === "") {
-    setAlertMsg("No product name");
-    setAlert(true);
-  } else if (newCategory === "") {
-    setAlertMsg("No product category");
-    setAlert(true);
+    notifications.show({
+      title: "Required Fields Missing",
+      message: "Missing product name"
+    })
+  } else if (typeof newProductCount === 'string') {
+    notifications.show({
+      title: "Required Fields Missing",
+      message: "Missing product amount"
+    })
   } else if (typeof newProductPrice === 'string') {
-    setAlertMsg("No price entered")
-    setAlert(true);
+    notifications.show({
+      title: "Required Fields Missing",
+      message: "Missing product price"
+    })
   } else {
     setProductList((productList) => {
         const found = productList.findIndex((product) => (product["category"] === newCategory));
@@ -185,6 +193,7 @@ function handleProductAddButtonClick({
     setNewProductCount("");
     setNewProductName("");
     setNewProductPrice("");
+    notifications.clean();
     close();
   }
 }
@@ -201,18 +210,11 @@ function ProductAddButton({
   const [newProductName, setNewProductName] = useState("");
   const [newProductPrice, setNewProductPrice] = useState<string|number>("");
   const [productCount, setProductCount] = useState<string|number>('');
-  const [alert, setAlert] = useState(false);
-  const [alertMsg, setAlertMsg] = useState("");
 
   return (
     <>
       <Modal opened={opened} onClose={close} title="Add Product" centered>
         <Stack gap="md">
-          {alert ? 
-          <Alert withCloseButton title="Error"
-          onClose={() => setAlert(false)}>{alertMsg}</Alert> : 
-          <></>}
-
           <TextInput label="Product Category" value={productCategory}
           onChange={(event)=>setProductCategory(event.currentTarget.value)} />
 
@@ -236,9 +238,7 @@ function ProductAddButton({
               setNewCategory: setProductCategory,
               setNewProductCount: setProductCount,
               setNewProductName: setNewProductName,
-              setNewProductPrice: setNewProductPrice,
-              setAlert: setAlert, 
-              setAlertMsg: setAlertMsg});
+              setNewProductPrice: setNewProductPrice});
           }}>Done</Button>
 
         </Stack>

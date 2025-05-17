@@ -119,7 +119,6 @@ function SearchBar({
 }
 
 function handleProductAddButtonClick({
-  productList,
   setProductList,
   close,
   newCategory,
@@ -133,7 +132,6 @@ function handleProductAddButtonClick({
   setAlert,
   setAlertMsg,
 }: {
-  productList: Array<Products>;
   setProductList: React.Dispatch<React.SetStateAction<Array<Products>>>;
   close: () => void;
   newCategory: string;
@@ -160,16 +158,29 @@ function handleProductAddButtonClick({
     setAlertMsg("No price entered")
     setAlert(true);
   } else {
-    const found = productList.findIndex((product) => (product["category"] == newCategory));
-    if (found === -1) {
-      setProductList([...productList, {category: newCategory, categoryList: [{price: newProductPrice, count: newProductCount, name: newProductName}]}])
-    } else {
-      setProductList(productList.map((category) => 
-        category["category"] === newCategory ? {
-          ...category, categoryList: [...category["categoryList"], {price: newProductPrice, name: newProductName, count: newProductCount}]
-        } : category
-      ));
-    }
+    setProductList((productList) => {
+        const found = productList.findIndex((product) => (product["category"] === newCategory));
+        if (found === -1) {
+          return [...productList, {category: newCategory, categoryList: [{price: newProductPrice, count: newProductCount, name: newProductName}]}];
+        } else {
+          const idx = productList[found]["categoryList"].findIndex((product) => (product["name"] === newProductName));
+          if (idx === -1) {
+            return productList.map((category) => 
+              category["category"] === newCategory ? {
+                ...category, categoryList: [...category["categoryList"], {price: newProductPrice, name: newProductName, count: newProductCount}]
+              } : category
+            );
+          } else {
+            return productList.map((category) => category["category"] === newCategory ? {
+              category: category["category"], categoryList: category["categoryList"].map((product) => 
+                product.name === newProductName ? {
+                  ...product, count: product.count + newProductCount
+                } : product
+              )
+            } : category)
+          }
+        }
+    })
     setNewCategory("");
     setNewProductCount("");
     setNewProductName("");
@@ -197,6 +208,11 @@ function ProductAddButton({
     <>
       <Modal opened={opened} onClose={close} title="Add Product" centered>
         <Stack gap="md">
+          {alert ? 
+          <Alert withCloseButton title="Error"
+          onClose={() => setAlert(false)}>{alertMsg}</Alert> : 
+          <></>}
+
           <TextInput label="Product Category" value={productCategory}
           onChange={(event)=>setProductCategory(event.currentTarget.value)} />
 
@@ -208,14 +224,9 @@ function ProductAddButton({
 
           <NumberInput label="Price" value={newProductPrice}
           onChange={setNewProductPrice} />
-
-          {alert ? 
-          <Alert withCloseButton title="Error"
-          onClose={() => setAlert(false)}>{alertMsg}</Alert> : 
-          <></>}
           
           <Button size="xs" onClick={() => {
-            handleProductAddButtonClick({productList: productList, 
+            handleProductAddButtonClick({
               setProductList: setProductList, 
               close: close, 
               newCategory: productCategory, 

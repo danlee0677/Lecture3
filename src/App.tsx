@@ -53,7 +53,7 @@ function ProductRow({ product }: { product: Product }) {
   return (
     <Table.Tr>
       <Table.Td>{name}</Table.Td>
-      <Table.Td>{`\$${product.price}`}</Table.Td>
+      <Table.Td>{`$${product.price}`}</Table.Td>
       <Table.Td>{`${product.count}`}</Table.Td>
     </Table.Tr>
   );

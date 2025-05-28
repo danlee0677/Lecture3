@@ -199,10 +199,8 @@ function handleProductAddButtonClick({
 }
 
 function ProductAddButton({
-  productList,
   setProductList
 }: {
-  productList: Array<Products>;
   setProductList: React.Dispatch<React.SetStateAction<Array<Products>>>;
 }) {
   const [opened, {open, close}] = useDisclosure(false);
@@ -268,7 +266,7 @@ function App() {
     <Container size="xs" px="md" mt={40}>
       <Stack gap="md">
         <FilterableProductTable products={productList} />
-        <ProductAddButton productList={productList} setProductList={setProductList}/>
+        <ProductAddButton setProductList={setProductList}/>
       </Stack>
     </Container>
   );
